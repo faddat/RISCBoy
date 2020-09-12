@@ -41,10 +41,10 @@ jobs:
             make -j $(nproc)
             
       - name: fpga-icestorm and yosys install
-        run: apt install -y fpga-icestorm yosys
+        run: sudo apt install -y fpga-icestorm yosys
         
       - name: nextpnr dependencies
-        run: apt install -y libboost-all-dev qt5-default clang-format libeigen3-dev python3-dev
+        run: sudoo apt install -y libboost-all-dev qt5-default clang-format libeigen3-dev python3-dev
 
       - name: clone nextpnr
         uses: actions/checkout@v2
