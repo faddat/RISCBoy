@@ -1,6 +1,6 @@
 # This is a basic workflow that is manually triggered
 
-name: RiscBoy
+name: RISCBoy
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
         
       - name: correct my silly mistake
-        run: git submodule set-url scripts https://Wren6991/fpgascripts.git
+        run: git submodule set-url scripts https://github.com/Wren6991/fpgascripts.git
         
       - name: fetch submodules
         run: git submodule update --init --recursive
