@@ -1,0 +1,71 @@
+# This is a basic workflow that is manually triggered
+
+name: Desmos
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on: [push, pull_request]
+
+
+# This workflow makes a 64 bit Raspberry Pi Ubuntu Server Image.
+# It does not have the security issues mentioned here: https://github.com/tendermint/tendermint/blob/master/docs/tendermint-core/running-in-production.md#validator-signing-on-32-bit-architectures-or-arm
+# Later, more devices will be supported, as well.
+
+
+jobs:
+  build:
+    name: Riscboy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out riscboy
+        uses: actions/checkout@v2
+        
+      - name: correct my silly mistake
+        run: git submodule set-url scripts https://Wren6991/fpgascripts.git
+        
+      - name: fetch submodules
+        run: git submodule update --init --recursive
+
+      - name: check out riscv-gnu-toolchain
+        uses: actions/checkout@v2
+        with:
+          repository: riscv/riscv-gnu-toolchain
+          path: riscv-gnu-toolchain
+          submodules: recursive
+
+      - name: install dependencies for riscv-gnu-toolchain
+        run: sudo apt-get install -y autoconf automake autotools-dev curl python3 libmpc-dev libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo gperf libtool patchutils bc zlib1g-dev libexpat-dev
+       
+      - name: compile and install riscv-gnu-toolchain
+        runs: |
+            cd riscv-gnu-toolchain
+            ./configure --prefix=/opt/riscv --with-arch=rv32ic --with-abi=ilp32
+            sudo mkdir /opt/riscv
+            sudo chown $(whoami) /opt/riscv
+            make -j $(nproc)
+            
+      - name: fpga-icestorm and yosys install
+        runs: apt install -y fpga-icestorm yosys
+        
+      - name: nextpnr dependencies
+        run: apt install -y libboost-all-dev qt5-default clang-format libeigen3-dev python3-dev
+
+      - name: clone nextpnr
+        uses: actions/checkout@v2
+        with:
+          repository: YosysHQ/nextpnr
+          path: nextpnr
+
+      - name: build nextpnr
+        run: |
+            cd nextpnr
+            cmake . -DARCH=ice40
+            make -j$(nproc)
+            sudo make install
+            
+      - name: build ice40 riscboy
+        run: |
+          . sourceme
+          cd synth
+          make -f HX8k-EVN.mk bit
+        
